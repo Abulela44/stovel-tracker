@@ -1,4 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import { Calculator, FileText, Landmark, LayoutDashboard, LoaderCircle, MoreHorizontal, ShieldCheck, Sparkles, Users, Vote, Wallet, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+import { AuthGate } from './AuthGate';
+import { InstallPrompt } from './InstallPrompt';
 import { Navbar } from './Navbar';
 import { HeaderHero } from './HeaderHero';
 import { StokvelOverview } from './StokvelOverview';
@@ -9,338 +15,75 @@ import { GovernanceVoting } from './GovernanceVoting';
 import { FinancialLedger } from './FinancialLedger';
 import { Calculators } from './Calculators';
 import { TrustAndSecurity } from './TrustAndSecurity';
-
-// Modals
 import { AddContributionModal } from './modals/AddContributionModal';
 import { WhatsAppReminderModal } from './modals/WhatsAppReminderModal';
 import { NewLoanModal } from './modals/NewLoanModal';
+import { AddMemberModal } from './modals/AddMemberModal';
+import { NewProposalModal } from './modals/NewProposalModal';
+import { INITIAL_CONTRIBUTIONS, INITIAL_LOANS, INITIAL_MEMBERS, INITIAL_PAYOUTS, INITIAL_PROPOSALS, INITIAL_STOKVELS, INITIAL_TRANSACTIONS } from '../mockData';
+import type { AppNotification, Contribution, GroupSecuritySettings, Loan, Member, PayoutSchedule, Proposal, Stokvel, StokvelWorkspace, Transaction } from '../types';
 
-// Mock initial data
-import { 
-  INITIAL_STOKVELS, 
-  INITIAL_MEMBERS, 
-  INITIAL_CONTRIBUTIONS, 
-  INITIAL_PAYOUTS, 
-  INITIAL_LOANS, 
-  INITIAL_PROPOSALS, 
-  INITIAL_TRANSACTIONS 
-} from '../mockData';
+const DEFAULT_SECURITY_SETTINGS: GroupSecuritySettings = { groupName: 'Sisonke Wealth & Property Syndicate', adminName: 'Sipho Ndlovu', adminIdNumber: '8604125800084', adminPhone: '+27 82 555 1234', isIdVerified: true, multiSignThreshold: 1000, requiredApprovals: 2, constitutionAgreed: true, bankAccountVerified: true };
+const DEFAULT_NOTIFICATIONS: AppNotification[] = [
+  { id: 'overdue', title: 'Contribution overdue', message: 'Zanele Naidoo still has an outstanding monthly contribution.', kind: 'warning', read: false },
+  { id: 'loan', title: 'Loan needs approval', message: 'Sipho Dlamini has a pending group loan request.', kind: 'info', read: false },
+  { id: 'payout', title: 'Payout approaching', message: 'Nomvula Khumalo is next in the rotation schedule.', kind: 'success', read: false },
+];
+const DEFAULT_WORKSPACE: StokvelWorkspace = { stokvels: INITIAL_STOKVELS, members: INITIAL_MEMBERS, contributions: INITIAL_CONTRIBUTIONS, payouts: INITIAL_PAYOUTS, loans: INITIAL_LOANS, proposals: INITIAL_PROPOSALS, transactions: INITIAL_TRANSACTIONS, notifications: DEFAULT_NOTIFICATIONS, securitySettings: DEFAULT_SECURITY_SETTINGS };
 
-import { Stokvel, Member, Contribution, PayoutSchedule, Loan, Proposal, Transaction, GroupSecuritySettings } from '../types';
-import { LayoutDashboard, Users, Sparkles, Landmark, Vote, FileText, Calculator, ShieldCheck } from 'lucide-react';
+const tabs = [
+  { id: 'overview', label: 'Overview', short: 'Home', icon: LayoutDashboard }, { id: 'members', label: 'Members & Payments', short: 'Members', icon: Users },
+  { id: 'payouts', label: 'Rotation Schedule', short: 'Payouts', icon: Sparkles }, { id: 'loans', label: 'Group Loans', short: 'Loans', icon: Landmark },
+  { id: 'governance', label: 'Voting & Motions', short: 'Voting', icon: Vote }, { id: 'ledger', label: 'Audit Ledger', short: 'Ledger', icon: FileText },
+  { id: 'trust', label: 'Trust & Security', short: 'Security', icon: ShieldCheck }, { id: 'calculators', label: 'Wealth Estimator', short: 'Estimator', icon: Calculator },
+];
 
-const DEFAULT_SECURITY_SETTINGS: GroupSecuritySettings = {
-  groupName: 'FBI Wealth Accumators Stokvel',
-  adminName: 'Sipho Ndlovu',
-  adminIdNumber: '8604125800084',
-  adminPhone: '+27 82 555 1234',
-  isIdVerified: true,
-  multiSignThreshold: 1000,
-  requiredApprovals: 2,
-  constitutionAgreed: true,
-  bankAccountVerified: true,
-};
+export function StokvelApp() { return <AuthGate>{(session) => <AuthenticatedApp session={session} />}</AuthGate>; }
 
-export function StokvelApp() {
-  const [stokvels, setStokvels] = useState<Stokvel[]>(INITIAL_STOKVELS);
-  
-  // Load initial settings or fallback to local storage
-  const [securitySettings, setSecuritySettings] = useState<GroupSecuritySettings>(DEFAULT_SECURITY_SETTINGS);
+function AuthenticatedApp({ session }: { session: Session }) {
+  const [workspace, setWorkspace] = useState<StokvelWorkspace>(DEFAULT_WORKSPACE);
+  const [loaded, setLoaded] = useState(false); const [saving, setSaving] = useState(false); const initialLoad = useRef(true);
+  const [activeStokvelId, setActiveStokvelId] = useState(INITIAL_STOKVELS[0]?.id ?? ''); const [activeTab, setActiveTab] = useState('overview');
+  const [contribOpen, setContribOpen] = useState(false); const [loanOpen, setLoanOpen] = useState(false); const [memberOpen, setMemberOpen] = useState(false); const [proposalOpen, setProposalOpen] = useState(false); const [moreOpen, setMoreOpen] = useState(false);
+  const [reminderMember, setReminderMember] = useState<Member | null>(null);
+  const activeStokvel = workspace.stokvels.find((item) => item.id === activeStokvelId) ?? workspace.stokvels[0] ?? INITIAL_STOKVELS[0];
 
-  useEffect(() => {
-    const saved = localStorage.getItem('stokvel_security_settings');
-    if (saved) {
-      const parsed: GroupSecuritySettings = JSON.parse(saved);
-      setSecuritySettings(parsed);
-      if (parsed.groupName) {
-        setActiveStokvel(prev => ({ ...prev, name: parsed.groupName }));
-      }
-    }
-  }, []);
+  useEffect(() => { void (async () => { const { data } = await supabase.from('stokvel_workspaces').select('*').eq('owner_id', session.user.id).maybeSingle(); if (data) setWorkspace({ stokvels: data.stokvels as unknown as Stokvel[], members: data.members as unknown as Member[], contributions: data.contributions as unknown as Contribution[], payouts: data.payouts as unknown as PayoutSchedule[], loans: data.loans as unknown as Loan[], proposals: data.proposals as unknown as Proposal[], transactions: data.transactions as unknown as Transaction[], notifications: data.notifications as unknown as AppNotification[], securitySettings: data.security_settings as unknown as GroupSecuritySettings }); setLoaded(true); initialLoad.current = false; })(); }, [session.user.id]);
+  useEffect(() => { if (!loaded || initialLoad.current) return; setSaving(true); const timer = window.setTimeout(() => { void supabase.from('stokvel_workspaces').update({ stokvels: workspace.stokvels as unknown as Json, members: workspace.members as unknown as Json, contributions: workspace.contributions as unknown as Json, payouts: workspace.payouts as unknown as Json, loans: workspace.loans as unknown as Json, proposals: workspace.proposals as unknown as Json, transactions: workspace.transactions as unknown as Json, notifications: workspace.notifications as unknown as Json, security_settings: workspace.securitySettings as unknown as Json }).eq('owner_id', session.user.id).then(() => setSaving(false)); }, 450); return () => window.clearTimeout(timer); }, [workspace, loaded, session.user.id]);
 
-  const [activeStokvel, setActiveStokvel] = useState<Stokvel>(INITIAL_STOKVELS[0]!);
-  
-  const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS);
-  const [contributions, setContributions] = useState<Contribution[]>(INITIAL_CONTRIBUTIONS);
-  const [payouts, setPayouts] = useState<PayoutSchedule[]>(INITIAL_PAYOUTS);
-  const [loans, setLoans] = useState<Loan[]>(INITIAL_LOANS);
-  const [proposals, setProposals] = useState<Proposal[]>(INITIAL_PROPOSALS);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const unread = useMemo(() => workspace.notifications.filter((n) => !n.read).length, [workspace.notifications]);
+  if (!loaded || !activeStokvel) return <div className="grid min-h-screen place-items-center bg-background"><LoaderCircle className="size-7 animate-spin text-primary" /></div>;
+  const patch = (changes: Partial<StokvelWorkspace>) => setWorkspace((current) => ({ ...current, ...changes }));
+  const updateActive = (updater: (stokvel: Stokvel) => Stokvel) => patch({ stokvels: workspace.stokvels.map((s) => s.id === activeStokvel.id ? updater(s) : s) });
+  const addNotice = (title: string, message: string, kind: AppNotification['kind'] = 'success') => patch({ notifications: [{ id: crypto.randomUUID(), title, message, kind, read: false }, ...workspace.notifications] });
+  const navigate = (id: string) => { setActiveTab(id); setMoreOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-  const [activeTab, setActiveTab] = useState<string>('overview');
+  const verifyPayment = (memberId: string) => { const member = workspace.members.find((m) => m.id === memberId); if (!member) return; const amount = activeStokvel.monthlyContribution; const tx: Transaction = { id: crypto.randomUUID(), stokvelId: activeStokvel.id, type: 'deposit', amount, description: `Monthly Contribution - ${member.name}`, date: new Date().toISOString().slice(0, 10), memberName: member.name, reference: `STK-${member.name.split(' ')[0]}-VERIFIED`, category: 'Contribution' }; setWorkspace((w) => ({ ...w, members: w.members.map((m) => m.id === memberId ? { ...m, status: 'paid', totalContributed: m.totalContributed + amount } : m), transactions: [tx, ...w.transactions], stokvels: w.stokvels.map((s) => s.id === activeStokvel.id ? { ...s, totalBalance: s.totalBalance + amount } : s), notifications: [{ id: crypto.randomUUID(), title: 'Payment verified', message: `${member.name}'s contribution was added.`, kind: 'success', read: false }, ...w.notifications] })); };
+  const recordContribution = (memberId: string, amount: number, method: string, reference: string) => { const member = workspace.members.find((m) => m.id === memberId); if (!member) return; const contribution: Contribution = { id: crypto.randomUUID(), stokvelId: activeStokvel.id, memberId, memberName: member.name, memberAvatar: member.avatar, amount, date: new Date().toISOString().slice(0, 10), cycleMonth: new Date().toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' }), status: 'verified', paymentMethod: method as Contribution['paymentMethod'], reference }; const tx: Transaction = { id: crypto.randomUUID(), stokvelId: activeStokvel.id, type: 'deposit', amount, description: `Contribution via ${method} - ${member.name}`, date: contribution.date, memberName: member.name, reference, category: 'Contribution' }; setWorkspace((w) => ({ ...w, contributions: [contribution, ...w.contributions], transactions: [tx, ...w.transactions], members: w.members.map((m) => m.id === memberId ? { ...m, status: 'paid', totalContributed: m.totalContributed + amount } : m), stokvels: w.stokvels.map((s) => s.id === activeStokvel.id ? { ...s, totalBalance: s.totalBalance + amount } : s) })); };
+  const applyLoan = (borrowerId: string, amount: number, durationMonths: number, purpose: string) => { const member = workspace.members.find((m) => m.id === borrowerId); if (!member) return; const rate = 4.5; patch({ loans: [{ id: crypto.randomUUID(), stokvelId: activeStokvel.id, borrowerId, borrowerName: member.name, borrowerAvatar: member.avatar, amount, interestRate: rate, durationMonths, monthlyRepayment: Math.round((amount * (1 + rate / 100 * durationMonths)) / durationMonths), status: 'requested', startDate: new Date().toISOString().slice(0, 10), dueDate: new Date(Date.now() + durationMonths * 2592000000).toISOString().slice(0, 10), remainingBalance: amount, purpose }, ...workspace.loans] }); };
+  const approveLoan = (loanId: string) => { const loan = workspace.loans.find((l) => l.id === loanId); if (!loan) return; const tx: Transaction = { id: crypto.randomUUID(), stokvelId: activeStokvel.id, type: 'loan_issued', amount: loan.amount, description: `Disbursed group loan to ${loan.borrowerName}`, date: new Date().toISOString().slice(0, 10), memberName: loan.borrowerName, reference: `LOAN-${loan.id.slice(0, 8)}`, category: 'Group Financing' }; setWorkspace((w) => ({ ...w, loans: w.loans.map((l) => l.id === loanId ? { ...l, status: 'active' } : l), transactions: [tx, ...w.transactions], stokvels: w.stokvels.map((s) => s.id === activeStokvel.id ? { ...s, totalBalance: s.totalBalance - loan.amount } : s) })); };
+  const castVote = (proposalId: string, vote: 'for' | 'against') => patch({ proposals: workspace.proposals.map((p) => p.id === proposalId ? { ...p, votesFor: p.votesFor + (vote === 'for' ? 1 : 0), votesAgainst: p.votesAgainst + (vote === 'against' ? 1 : 0), userVoted: vote } : p) });
 
-  // Modals state
-  const [isContribModalOpen, setIsContribModalOpen] = useState(false);
-  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
-  const [selectedMemberForReminder, setSelectedMemberForReminder] = useState<Member | null>(null);
-  const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
-
-  // Save security settings to local storage
-  const handleUpdateSecuritySettings = (newSettings: GroupSecuritySettings) => {
-    setSecuritySettings(newSettings);
-    localStorage.setItem('stokvel_security_settings', JSON.stringify(newSettings));
-  };
-
-  const handleUpdateGroupName = (name: string) => {
-    setActiveStokvel(prev => ({ ...prev, name }));
-    setStokvels(prev => prev.map(s => s.id === activeStokvel.id ? { ...s, name } : s));
-  };
-
-  // Handlers
-  const handleVerifyPayment = (memberId: string) => {
-    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, status: 'paid', totalContributed: m.totalContributed + activeStokvel.monthlyContribution } : m));
-    
-    const targetMember = members.find(m => m.id === memberId);
-    if (targetMember) {
-      const newTx: Transaction = {
-        id: `tx-${Date.now()}`,
-        stokvelId: activeStokvel.id,
-        type: 'deposit',
-        amount: activeStokvel.monthlyContribution,
-        description: `Monthly Contribution - ${targetMember.name}`,
-        date: new Date().toISOString().slice(0, 10),
-        memberName: targetMember.name,
-        reference: `STK-${targetMember.name.split(' ')[0]}-VERIFIED`,
-        category: 'Contribution',
-      };
-      setTransactions(prev => [newTx, ...prev]);
-      setActiveStokvel(prev => ({ ...prev, totalBalance: prev.totalBalance + activeStokvel.monthlyContribution }));
-    }
-  };
-
-  const handleRecordContribution = (memberId: string, amount: number, method: string, reference: string) => {
-    const targetMember = members.find(m => m.id === memberId);
-    if (!targetMember) return;
-
-    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, status: 'paid', totalContributed: m.totalContributed + amount } : m));
-    
-    const newTx: Transaction = {
-      id: `tx-${Date.now()}`,
-      stokvelId: activeStokvel.id,
-      type: 'deposit',
-      amount,
-      description: `Contribution via ${method} - ${targetMember.name}`,
-      date: new Date().toISOString().slice(0, 10),
-      memberName: targetMember.name,
-      reference,
-      category: 'Contribution',
-    };
-
-    setTransactions(prev => [newTx, ...prev]);
-    setActiveStokvel(prev => ({ ...prev, totalBalance: prev.totalBalance + amount }));
-  };
-
-  const handleApplyLoan = (borrowerId: string, amount: number, durationMonths: number, purpose: string) => {
-    const borrower = members.find(m => m.id === borrowerId);
-    if (!borrower) return;
-
-    const interestRate = 4.5;
-    const monthlyRepayment = Math.round((amount * (1 + (interestRate / 100) * durationMonths)) / durationMonths);
-
-    const newLoan: Loan = {
-      id: `loan-${Date.now()}`,
-      stokvelId: activeStokvel.id,
-      borrowerId,
-      borrowerName: borrower.name,
-      borrowerAvatar: borrower.avatar,
-      amount,
-      interestRate,
-      durationMonths,
-      monthlyRepayment,
-      status: 'requested',
-      startDate: new Date().toISOString().slice(0, 10),
-      dueDate: new Date(Date.now() + durationMonths * 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-      remainingBalance: amount,
-      purpose,
-    };
-
-    setLoans(prev => [newLoan, ...prev]);
-  };
-
-  const handleApproveLoan = (loanId: string) => {
-    setLoans(prev => prev.map(l => {
-      if (l.id === loanId) {
-        const approved = { ...l, status: 'active' as const };
-        const newTx: Transaction = {
-          id: `tx-${Date.now()}`,
-          stokvelId: activeStokvel.id,
-          type: 'payout',
-          amount: l.amount,
-          description: `Disbursed Micro-Loan to ${l.borrowerName}`,
-          date: new Date().toISOString().slice(0, 10),
-          memberName: l.borrowerName,
-          reference: `LOAN-DISBURSED-${l.id}`,
-          category: 'Group Financing',
-        };
-        setTransactions(txs => [newTx, ...txs]);
-        setActiveStokvel(s => ({ ...s, totalBalance: s.totalBalance - l.amount }));
-        return approved;
-      }
-      return l;
-    }));
-  };
-
-  const handleCastVote = (proposalId: string, voteType: 'for' | 'against') => {
-    setProposals(prev => prev.map(p => {
-      if (p.id === proposalId) {
-        return {
-          ...p,
-          votesFor: voteType === 'for' ? p.votesFor + 1 : p.votesFor,
-          votesAgainst: voteType === 'against' ? p.votesAgainst + 1 : p.votesAgainst,
-          userVoted: voteType,
-        };
-      }
-      return p;
-    }));
-  };
-
-  const openReminderForMember = (member: Member) => {
-    setSelectedMemberForReminder(member);
-    setIsReminderModalOpen(true);
-  };
-
-  return (
-    <div className="min-h-screen bg-background text-white selection:bg-primary selection:text-white font-sans">
-      
-      {/* Top Navigation */}
-      <Navbar
-        stokvels={stokvels}
-        activeStokvel={activeStokvel}
-        onSelectStokvel={setActiveStokvel}
-        onOpenCreateModal={() => setActiveTab('trust')}
-        onOpenContributionModal={() => setIsContribModalOpen(true)}
-      />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Dynamic Storytelling Header Hero */}
-        <HeaderHero
-          stokvel={activeStokvel}
-          onOpenContributionModal={() => setIsContribModalOpen(true)}
-          onOpenLoanModal={() => setIsLoanModalOpen(true)}
-        />
-
-        {/* Tab Navigation Menu */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 border-b border-border">
-          {[
-            { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-            { id: 'members', label: 'Members & Payments', icon: Users },
-            { id: 'payouts', label: 'Rotation Schedule', icon: Sparkles },
-            { id: 'loans', label: 'Group Loans', icon: Landmark },
-            { id: 'governance', label: 'Voting & Motions', icon: Vote },
-            { id: 'ledger', label: 'Audit Ledger', icon: FileText },
-            { id: 'trust', label: 'Trust & Security', icon: ShieldCheck },
-            { id: 'calculators', label: 'Wealth Estimator', icon: Calculator },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 whitespace-nowrap transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-glow-purple scale-[1.02]'
-                    : 'bg-surface hover:bg-surface-hover text-textSecondary hover:text-white border border-border'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-primary'}`} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Tab Content Display */}
-        {activeTab === 'overview' && (
-          <StokvelOverview
-            stokvel={activeStokvel}
-            members={members}
-            contributions={contributions}
-            transactions={transactions}
-            onNavigateTab={setActiveTab}
-          />
-        )}
-
-        {activeTab === 'members' && (
-          <MemberTracker
-            members={members}
-            stokvel={activeStokvel}
-            onOpenAddMemberModal={() => alert("Add Member Modal")}
-            onOpenReminderModal={openReminderForMember}
-            onVerifyMemberPayment={handleVerifyPayment}
-          />
-        )}
-
-        {activeTab === 'payouts' && (
-          <PayoutsRotation
-            payouts={payouts}
-            stokvel={activeStokvel}
-          />
-        )}
-
-        {activeTab === 'loans' && (
-          <LoansManager
-            loans={loans}
-            stokvel={activeStokvel}
-            onOpenNewLoanModal={() => setIsLoanModalOpen(true)}
-            onApproveLoan={handleApproveLoan}
-          />
-        )}
-
-        {activeTab === 'governance' && (
-          <GovernanceVoting
-            proposals={proposals}
-            onOpenNewProposalModal={() => alert("New Proposal Modal")}
-            onCastVote={handleCastVote}
-          />
-        )}
-
-        {activeTab === 'ledger' && (
-          <FinancialLedger
-            transactions={transactions}
-          />
-        )}
-
-        {activeTab === 'trust' && (
-          <TrustAndSecurity
-            stokvel={activeStokvel}
-            settings={securitySettings}
-            onUpdateSettings={handleUpdateSecuritySettings}
-            onUpdateGroupName={handleUpdateGroupName}
-          />
-        )}
-
-        {activeTab === 'calculators' && (
-          <Calculators />
-        )}
-
-      </main>
-
-      {/* Modals */}
-      <AddContributionModal
-        isOpen={isContribModalOpen}
-        onClose={() => setIsContribModalOpen(false)}
-        members={members}
-        stokvel={activeStokvel}
-        onSubmit={handleRecordContribution}
-      />
-
-      <WhatsAppReminderModal
-        isOpen={isReminderModalOpen}
-        onClose={() => setIsReminderModalOpen(false)}
-        member={selectedMemberForReminder}
-        stokvel={activeStokvel}
-      />
-
-      <NewLoanModal
-        isOpen={isLoanModalOpen}
-        onClose={() => setIsLoanModalOpen(false)}
-        members={members}
-        stokvel={activeStokvel}
-        onSubmit={handleApplyLoan}
-      />
-
-    </div>
-  );
+  return <div className="min-h-screen bg-background pb-24 text-foreground selection:bg-primary md:pb-0">
+    <Navbar stokvels={workspace.stokvels} activeStokvel={activeStokvel} onSelectStokvel={(s) => setActiveStokvelId(s.id)} onOpenCreateModal={() => navigate('trust')} onOpenContributionModal={() => setContribOpen(true)} notifications={workspace.notifications} unreadCount={unread} onMarkNotificationsRead={() => patch({ notifications: workspace.notifications.map((n) => ({ ...n, read: true })) })} onSignOut={() => void supabase.auth.signOut()} saving={saving} />
+    <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8 lg:px-8"><HeaderHero stokvel={activeStokvel} onOpenContributionModal={() => setContribOpen(true)} onOpenLoanModal={() => setLoanOpen(true)} />
+      <nav className="mb-8 hidden items-center gap-2 overflow-x-auto border-b border-border pb-4 md:flex">{tabs.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => navigate(id)} className={`flex h-11 items-center gap-2 whitespace-nowrap rounded-lg px-4 text-sm font-semibold transition-colors ${activeTab === id ? 'bg-primary text-primary-foreground' : 'border border-border bg-surface text-textSecondary hover:text-foreground'}`}><Icon className="size-4" />{label}</button>)}</nav>
+      {activeTab === 'overview' && <StokvelOverview stokvel={activeStokvel} members={workspace.members} contributions={workspace.contributions} transactions={workspace.transactions} onNavigateTab={navigate} />}
+      {activeTab === 'members' && <MemberTracker members={workspace.members} stokvel={activeStokvel} onOpenAddMemberModal={() => setMemberOpen(true)} onOpenReminderModal={setReminderMember} onVerifyMemberPayment={verifyPayment} />}
+      {activeTab === 'payouts' && <PayoutsRotation payouts={workspace.payouts} stokvel={activeStokvel} />}
+      {activeTab === 'loans' && <LoansManager loans={workspace.loans} stokvel={activeStokvel} onOpenNewLoanModal={() => setLoanOpen(true)} onApproveLoan={approveLoan} />}
+      {activeTab === 'governance' && <GovernanceVoting proposals={workspace.proposals} onOpenNewProposalModal={() => setProposalOpen(true)} onCastVote={castVote} />}
+      {activeTab === 'ledger' && <FinancialLedger transactions={workspace.transactions} />}
+      {activeTab === 'trust' && <TrustAndSecurity stokvel={activeStokvel} settings={workspace.securitySettings} onUpdateSettings={(securitySettings) => patch({ securitySettings })} onUpdateGroupName={(name) => { updateActive((s) => ({ ...s, name })); patch({ securitySettings: { ...workspace.securitySettings, groupName: name } }); }} />}
+      {activeTab === 'calculators' && <Calculators />}
+    </main>
+    {moreOpen && <div className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 rounded-xl border border-border bg-surface-card p-3 shadow-2xl md:hidden"><div className="mb-2 flex items-center justify-between px-2"><p className="text-sm font-bold">More tools</p><button aria-label="Close more tools" className="grid size-9 place-items-center" onClick={() => setMoreOpen(false)}><X className="size-4" /></button></div><div className="grid grid-cols-2 gap-2">{tabs.slice(2).filter((t) => t.id !== 'loans').map(({ id, short, icon: Icon }) => <button key={id} className="flex min-h-12 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-left text-sm" onClick={() => navigate(id)}><Icon className="size-4 text-primary" />{short}</button>)}</div></div>}
+    <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-surface-card/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">{[{ id: 'overview', label: 'Home', icon: LayoutDashboard }, { id: 'members', label: 'Members', icon: Users }, { id: 'contribute', label: 'Pay', icon: Wallet }, { id: 'loans', label: 'Loans', icon: Landmark }, { id: 'more', label: 'More', icon: MoreHorizontal }].map(({ id, label, icon: Icon }) => <button key={id} aria-label={label} onClick={() => id === 'contribute' ? setContribOpen(true) : id === 'more' ? setMoreOpen((v) => !v) : navigate(id)} className={`flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${activeTab === id ? 'text-primary' : 'text-textSecondary'}`}><Icon className="size-5" />{label}</button>)}</nav>
+    <InstallPrompt />
+    <AddContributionModal isOpen={contribOpen} onClose={() => setContribOpen(false)} members={workspace.members} stokvel={activeStokvel} onSubmit={recordContribution} />
+    <WhatsAppReminderModal isOpen={reminderMember !== null} onClose={() => setReminderMember(null)} member={reminderMember} stokvel={activeStokvel} />
+    <NewLoanModal isOpen={loanOpen} onClose={() => setLoanOpen(false)} members={workspace.members} stokvel={activeStokvel} onSubmit={applyLoan} />
+    <AddMemberModal open={memberOpen} onOpenChange={setMemberOpen} stokvelId={activeStokvel.id} onSubmit={(member) => setWorkspace((w) => ({ ...w, members: [...w.members, member], stokvels: w.stokvels.map((s) => s.id === activeStokvel.id ? { ...s, memberCount: s.memberCount + 1 } : s) }))} />
+    <NewProposalModal open={proposalOpen} onOpenChange={setProposalOpen} stokvelId={activeStokvel.id} totalVoters={workspace.members.length} onSubmit={(proposal) => { patch({ proposals: [proposal, ...workspace.proposals] }); addNotice('New motion published', proposal.title, 'info'); }} />
+  </div>;
 }
