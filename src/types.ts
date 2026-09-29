@@ -118,3 +118,23 @@ export interface GroupSecuritySettings {
   constitutionAgreed: boolean;
   bankAccountVerified: boolean;
 }
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  kind: 'info' | 'warning' | 'success';
+  read: boolean;
+}
+
+export interface StokvelWorkspace {
+  stokvels: Stokvel[];
+  members: Member[];
+  contributions: Contribution[];
+  payouts: PayoutSchedule[];
+  loans: Loan[];
+  proposals: Proposal[];
+  transactions: Transaction[];
+  notifications: AppNotification[];
+  securitySettings: GroupSecuritySettings;
+}
