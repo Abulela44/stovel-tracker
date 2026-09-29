@@ -58,7 +58,7 @@ export function StokvelApp() {
     }
   }, []);
 
-  const [activeStokvel, setActiveStokvel] = useState<Stokvel>(INITIAL_STOKVELS[0]);
+  const [activeStokvel, setActiveStokvel] = useState<Stokvel>(INITIAL_STOKVELS[0]!);
   
   const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS);
   const [contributions, setContributions] = useState<Contribution[]>(INITIAL_CONTRIBUTIONS);

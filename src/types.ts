@@ -106,3 +106,15 @@ export interface Transaction {
   reference: string;
   category: string;
 }
+
+export interface GroupSecuritySettings {
+  groupName: string;
+  adminName: string;
+  adminIdNumber: string;
+  adminPhone: string;
+  isIdVerified: boolean;
+  multiSignThreshold: number;
+  requiredApprovals: number;
+  constitutionAgreed: boolean;
+  bankAccountVerified: boolean;
+}
