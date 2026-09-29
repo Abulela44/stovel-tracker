@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- The stokvel dashboard is a single client-side page: `src/routes/index.tsx` renders `src/components/StokvelApp.tsx`, which holds all tab state and mock data from `src/mockData.ts` (ported from the original Vite SPA, so no backend is involved).
