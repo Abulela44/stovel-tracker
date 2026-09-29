@@ -1,0 +1,12 @@
+import { useState, type FormEvent } from 'react';
+import { UserPlus } from 'lucide-react';
+import type { Member } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+export function AddMemberModal({ open, onOpenChange, onSubmit, stokvelId }: { open: boolean; onOpenChange: (open: boolean) => void; onSubmit: (member: Member) => void; stokvelId: string }) {
+  const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [phone, setPhone] = useState(''); const [error, setError] = useState('');
+  const submit = (event: FormEvent) => { event.preventDefault(); if (name.trim().length < 2 || !email.includes('@') || phone.trim().length < 8) { setError('Enter a valid name, email address and phone number.'); return; } onSubmit({ id: crypto.randomUUID(), stokvelId, name: name.trim(), email: email.trim(), phone: phone.trim(), role: 'Member', avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6d5bd0&color=fff`, totalContributed: 0, status: 'pending', joinDate: new Date().toISOString().slice(0, 10), equityPercentage: 0 }); setName(''); setEmail(''); setPhone(''); setError(''); onOpenChange(false); };
+  const field = 'h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground outline-none focus:border-primary';
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto rounded-xl border-border bg-surface-card"><DialogHeader><DialogTitle className="flex items-center gap-2"><UserPlus className="text-primary" />Add member</DialogTitle><DialogDescription>Add someone to this group and begin tracking their contributions.</DialogDescription></DialogHeader><form onSubmit={submit} className="space-y-4"><label className="block text-sm">Full name<input className={field} value={name} onChange={(e) => setName(e.target.value)} /></label><label className="block text-sm">Email<input className={field} type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label><label className="block text-sm">Phone number<input className={field} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} /></label>{error && <p className="text-sm text-error">{error}</p>}<DialogFooter><Button type="submit" className="h-11">Add member</Button></DialogFooter></form></DialogContent></Dialog>;
+}

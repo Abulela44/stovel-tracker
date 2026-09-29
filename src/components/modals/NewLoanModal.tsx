@@ -31,8 +31,8 @@ export const NewLoanModal: React.FC<NewLoanModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="glass-panel w-full max-w-md p-6 rounded-3xl border border-border space-y-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+      <div className="glass-panel max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto p-5 sm:p-6 rounded-xl border border-border space-y-6 shadow-2xl relative">
         <button
           onClick={onClose}
           className="absolute top-5 right-5 p-2 rounded-full bg-surface text-textSecondary hover:text-white"

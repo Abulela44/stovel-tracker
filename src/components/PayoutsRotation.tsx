@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Calendar, 
   Sparkles, 
@@ -11,6 +11,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { PayoutSchedule, Stokvel } from '../types';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface PayoutsRotationProps {
   payouts: PayoutSchedule[];
@@ -18,6 +20,7 @@ interface PayoutsRotationProps {
 }
 
 export const PayoutsRotation: React.FC<PayoutsRotationProps> = ({ payouts, stokvel }) => {
+  const [selected, setSelected] = useState<PayoutSchedule | null>(null);
   return (
     <div className="space-y-8">
       
@@ -85,7 +88,7 @@ export const PayoutsRotation: React.FC<PayoutsRotationProps> = ({ payouts, stokv
                 </span>
               </div>
 
-              <button className="px-4 py-2.5 rounded-xl bg-surface hover:bg-surface-hover border border-border text-xs font-semibold text-white transition-all flex items-center gap-1.5">
+               <button onClick={() => setSelected(pay)} className="px-4 py-2.5 rounded-xl bg-surface hover:bg-surface-hover border border-border text-xs font-semibold text-white transition-all flex items-center gap-1.5">
                 Receipt Details <ChevronRight className="w-4 h-4 text-textSecondary" />
               </button>
             </div>
@@ -93,6 +96,7 @@ export const PayoutsRotation: React.FC<PayoutsRotationProps> = ({ payouts, stokv
           </div>
         ))}
       </div>
+      <Dialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}><DialogContent className="border-border bg-surface-card"><DialogHeader><DialogTitle>Payout receipt</DialogTitle><DialogDescription>Complete scheduled disbursement details.</DialogDescription></DialogHeader>{selected && <div className="space-y-3 text-sm"><div className="flex justify-between border-b border-border pb-3"><span className="text-textSecondary">Recipient</span><strong>{selected.memberName}</strong></div><div className="flex justify-between border-b border-border pb-3"><span className="text-textSecondary">Amount</span><strong className="font-mono">R {selected.amount.toLocaleString()}</strong></div><div className="flex justify-between border-b border-border pb-3"><span className="text-textSecondary">Date</span><strong>{selected.payoutDate}</strong></div><div className="flex justify-between"><span className="text-textSecondary">Status</span><strong className="capitalize text-primary">{selected.status}</strong></div><p className="rounded-lg bg-surface p-3 text-textSecondary">{selected.notes}</p><Button className="w-full" onClick={() => window.print()}>Print receipt</Button></div>}</DialogContent></Dialog>
 
     </div>
   );
