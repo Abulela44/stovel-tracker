@@ -87,7 +87,15 @@ export const FinancialLedger: React.FC<FinancialLedgerProps> = ({ transactions }
       </div>
 
       {/* Transaction Table */}
-      <div className="glass-panel rounded-3xl border border-border overflow-hidden">
+      <div className="space-y-3 md:hidden">
+        {filteredTx.map((tx) => (
+          <article key={tx.id} className="rounded-lg border border-border bg-surface-card p-4">
+            <div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-start gap-2"><div className={`mt-0.5 rounded-lg p-2 ${tx.type === 'payout' || tx.type === 'loan_issued' ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>{tx.type === 'payout' || tx.type === 'loan_issued' ? <ArrowDownRight className="size-4" /> : <ArrowUpRight className="size-4" />}</div><div className="min-w-0"><h3 className="text-sm font-semibold leading-snug text-foreground">{tx.description}</h3><p className="mt-1 text-xs text-textSecondary">{tx.date} · {tx.category}</p></div></div><p className={`shrink-0 font-mono text-sm font-bold ${tx.type === 'payout' || tx.type === 'loan_issued' ? 'text-rose-400' : 'text-emerald-400'}`}>{tx.type === 'payout' || tx.type === 'loan_issued' ? '-' : '+'}R {tx.amount.toLocaleString()}</p></div>
+            <p className="mt-3 truncate border-t border-border pt-3 font-mono text-[11px] text-textSecondary">{tx.reference}</p>
+          </article>
+        ))}
+      </div>
+      <div className="hidden glass-panel rounded-3xl border border-border overflow-hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>

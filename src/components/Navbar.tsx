@@ -1,165 +1,21 @@
-import React, { useState } from 'react';
-import { 
-  Building2, 
-  ChevronDown, 
-  Bell, 
-  Plus, 
-  Search, 
-  Sparkles, 
-  ShieldCheck, 
-  Users,
-  Wallet
-} from 'lucide-react';
-import { Stokvel } from '../types';
+import { useState } from 'react';
+import { Bell, Building2, Check, ChevronDown, LogOut, ShieldCheck, Wallet, X } from 'lucide-react';
+import type { AppNotification, Stokvel } from '../types';
+import { Button } from '@/components/ui/button';
 
-interface NavbarProps {
-  stokvels: Stokvel[];
-  activeStokvel: Stokvel;
-  onSelectStokvel: (stokvel: Stokvel) => void;
-  onOpenCreateModal: () => void;
-  onOpenContributionModal: () => void;
+interface NavbarProps { stokvels: Stokvel[]; activeStokvel: Stokvel; onSelectStokvel: (stokvel: Stokvel) => void; onOpenCreateModal: () => void; onOpenContributionModal: () => void; notifications: AppNotification[]; unreadCount: number; onMarkNotificationsRead: () => void; onSignOut: () => void; saving: boolean; }
+
+export function Navbar({ stokvels, activeStokvel, onSelectStokvel, onOpenCreateModal, onOpenContributionModal, notifications, unreadCount, onMarkNotificationsRead, onSignOut, saving }: NavbarProps) {
+  const [groupsOpen, setGroupsOpen] = useState(false); const [noticesOpen, setNoticesOpen] = useState(false);
+  return <header className="sticky top-0 z-40 w-full border-b border-border bg-surface-card/95 backdrop-blur-xl">
+    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:h-20 sm:px-6 lg:px-8">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-5"><div className="flex shrink-0 items-center gap-2"><div className="grid size-10 place-items-center rounded-xl border border-primary/30 bg-primary/10 text-primary"><ShieldCheck className="size-5" /></div><div className="hidden sm:block"><p className="font-extrabold uppercase text-foreground">Sisonke</p><p className="text-[10px] uppercase text-textSecondary">Stokvel platform</p></div></div>
+        <div className="relative min-w-0"><button aria-label="Switch group" onClick={() => setGroupsOpen((v) => !v)} className="flex h-11 max-w-[190px] items-center gap-2 rounded-lg border border-border bg-surface px-3 text-left sm:max-w-xs"><Building2 className="size-4 shrink-0 text-primary" /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-foreground">{activeStokvel.name}</span><span className="hidden text-[10px] text-textSecondary sm:block">Active group</span></span><ChevronDown className="size-4 shrink-0 text-textSecondary" /></button>
+          {groupsOpen && <div className="absolute left-0 top-12 w-[min(21rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-border bg-surface-card shadow-2xl"><div className="flex items-center justify-between border-b border-border p-3"><span className="text-xs font-bold uppercase text-textSecondary">Your groups</span><button className="text-xs font-semibold text-primary" onClick={() => { setGroupsOpen(false); onOpenCreateModal(); }}>Group settings</button></div>{stokvels.map((s) => <button key={s.id} className="flex w-full items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-left last:border-0" onClick={() => { onSelectStokvel(s); setGroupsOpen(false); }}><span className="min-w-0"><span className="block truncate text-sm font-semibold">{s.name}</span><span className="text-xs text-textSecondary">R {s.totalBalance.toLocaleString()}</span></span>{s.id === activeStokvel.id && <Check className="size-4 text-primary" />}</button>)}</div>}
+        </div></div>
+      <div className="flex items-center gap-2"><span className="hidden text-[11px] text-textSecondary lg:block">{saving ? 'Saving…' : 'Saved'}</span><Button className="hidden h-11 sm:flex" onClick={onOpenContributionModal}><Wallet />Record contribution</Button>
+        <div className="relative"><Button variant="outline" size="icon" className="size-11" aria-label={`Notifications, ${unreadCount} unread`} onClick={() => setNoticesOpen((v) => !v)}><Bell />{unreadCount > 0 && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />}</Button>{noticesOpen && <div className="fixed inset-x-3 top-[4.5rem] rounded-xl border border-border bg-surface-card p-3 shadow-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-96"><div className="mb-2 flex items-center justify-between"><p className="font-bold">Notifications</p><button aria-label="Close notifications" className="grid size-9 place-items-center" onClick={() => setNoticesOpen(false)}><X className="size-4" /></button></div><div className="max-h-80 space-y-2 overflow-y-auto">{notifications.map((n) => <div key={n.id} className={`rounded-lg border p-3 ${n.read ? 'border-border bg-surface' : 'border-primary/30 bg-primary/5'}`}><p className="text-sm font-semibold">{n.title}</p><p className="mt-1 text-xs leading-relaxed text-textSecondary">{n.message}</p></div>)}</div>{unreadCount > 0 && <Button variant="ghost" className="mt-2 w-full" onClick={onMarkNotificationsRead}>Mark all as read</Button>}</div>}</div>
+        <Button variant="ghost" size="icon" className="hidden size-11 sm:inline-flex" aria-label="Sign out" onClick={onSignOut}><LogOut /></Button></div>
+    </div>
+  </header>;
 }
-
-export const Navbar: React.FC<NavbarProps> = ({
-  stokvels,
-  activeStokvel,
-  onSelectStokvel,
-  onOpenCreateModal,
-  onOpenContributionModal,
-}) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-border shadow-2xl backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          
-          {/* Logo & Stokvel Switcher */}
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary via-secondary to-accent p-[2px] shadow-glow-purple">
-                <div className="w-full h-full bg-background rounded-[14px] flex items-center justify-center">
-                  <ShieldCheck className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-              <div>
-                <span className="text-xl font-bold tracking-wider font-sans gradient-text uppercase">
-                  Sisonke
-                </span>
-                <span className="block text-[10px] text-textSecondary uppercase tracking-widest font-semibold">
-                  Stokvel Platform
-                </span>
-              </div>
-            </div>
-
-            <div className="hidden md:block h-8 w-[1px] bg-border" />
-
-            {/* Stokvel Switcher Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-surface hover:bg-surface-hover border border-border transition-all duration-200 group"
-              >
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                  <Building2 className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <span className="block text-xs font-medium text-textSecondary">Active Group</span>
-                  <span className="block text-sm font-semibold text-white group-hover:text-primary transition-colors">
-                    {activeStokvel.name}
-                  </span>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-textSecondary transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {dropdownOpen && (
-                <div className="absolute left-0 mt-2 w-80 bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="p-3 bg-surface-card border-b border-border flex justify-between items-center">
-                    <span className="text-xs font-semibold text-textSecondary uppercase tracking-wider">Your Stokvels</span>
-                    <button
-                      onClick={() => {
-                        setDropdownOpen(false);
-                        onOpenCreateModal();
-                      }}
-                      className="text-xs text-primary hover:text-primary-light font-medium flex items-center gap-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      New Group
-                    </button>
-                  </div>
-                  <div className="py-2 max-h-64 overflow-y-auto">
-                    {stokvels.map((stk) => (
-                      <button
-                        key={stk.id}
-                        onClick={() => {
-                          onSelectStokvel(stk);
-                          setDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-surface-hover transition-colors ${
-                          stk.id === activeStokvel.id ? 'bg-primary/10 border-l-4 border-primary' : ''
-                        }`}
-                      >
-                        <div className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center text-secondary mt-0.5 shrink-0">
-                          <Users className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">{stk.name}</p>
-                          <p className="text-xs text-textSecondary flex justify-between mt-1">
-                            <span>{stk.type} Stokvel</span>
-                            <span className="font-mono text-emerald-400">R {stk.totalBalance.toLocaleString()}</span>
-                          </p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Actions & User Profile */}
-          <div className="flex items-center gap-3">
-            
-            <button
-              onClick={onOpenContributionModal}
-              className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-semibold text-sm shadow-glow-purple hover:opacity-95 transition-all duration-200 active:scale-95"
-            >
-              <Wallet className="w-4 h-4" />
-              <span>Record Contribution</span>
-            </button>
-
-            <div className="relative hidden lg:block">
-              <Search className="w-4 h-4 text-textSecondary absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search ledger, member, loans..."
-                className="pl-9 pr-4 py-2 text-xs bg-surface border border-border rounded-xl text-white placeholder-textSecondary focus:outline-none focus:border-primary w-52 transition-all"
-              />
-            </div>
-
-            <button className="relative p-2.5 rounded-xl bg-surface hover:bg-surface-hover border border-border text-textSecondary hover:text-white transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-accent animate-ping" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-accent" />
-            </button>
-
-            {/* Profile Pill */}
-            <div className="flex items-center gap-3 pl-2 border-l border-border">
-              <img
-                src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=200"
-                alt="Thabo Mokoena"
-                className="w-10 h-10 rounded-xl object-cover border border-primary/50"
-              />
-              <div className="hidden xl:block text-left">
-                <span className="block text-xs font-semibold text-white">Thabo Mokoena</span>
-                <span className="block text-[10px] text-primary font-medium">Chairperson</span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
-    </header>
-  );
-};
