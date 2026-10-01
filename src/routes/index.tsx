@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { StokvelApp } from "@/components/StokvelApp";
 
-const title = "FBI Wealth Accumators Stokvel";
+const title = "FBI Stokvel — Group Savings";
 const description =
   "Manage your stokvel: track member contributions, rotation payouts, group loans, voting motions and a transparent audit ledger.";
 

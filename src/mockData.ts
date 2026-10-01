@@ -3,9 +3,9 @@ import { Stokvel, Member, Contribution, PayoutSchedule, Loan, Proposal, Transact
 export const INITIAL_STOKVELS: Stokvel[] = [
   {
     id: 'stokvel-1',
-    name: 'Sisonke Wealth & Property Syndicate',
+    name: 'Sisonke Family Savings Club',
     code: 'SWPS-2025',
-    type: 'Investment',
+    type: 'Savings',
     totalBalance: 485000,
     monthlyContribution: 3500,
     targetAmount: 750000,
@@ -15,7 +15,7 @@ export const INITIAL_STOKVELS: Stokvel[] = [
     bankName: 'First National Bank (FNB)',
     accountNumber: '62849102847',
     photoUrl: 'https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'A forward-thinking investment group focused on purchasing commercial REITs and suburban rental property assets.',
+    description: 'A community savings club where members contribute monthly and take turns receiving the pooled payout.',
     yieldRate: 11.2,
     createdDate: '2023-01-15',
   },
@@ -216,7 +216,7 @@ export const INITIAL_PAYOUTS: PayoutSchedule[] = [
     amount: 42000,
     payoutDate: '2025-05-30',
     status: 'upcoming',
-    notes: 'Mid-year rotation distribution plus interest accrual dividend.',
+    notes: 'Mid-year rotation distribution.',
   },
   {
     id: 'pay-2',
@@ -283,7 +283,7 @@ export const INITIAL_PROPOSALS: Proposal[] = [
   {
     id: 'prop-1',
     stokvelId: 'stokvel-1',
-    title: 'Allocate 20% of Treasury into Fixed-Yield Money Market (9.2% p.a)',
+    title: 'Introduce R100 late-payment penalty after the 28th',
     description: 'Move R95,000 idle cash balance from primary checking to high-interest fixed deposit account with Standard Bank to maximize compounding.',
     createdBy: 'Nomvula Khumalo (Treasurer)',
     votesFor: 8,
@@ -291,7 +291,7 @@ export const INITIAL_PROPOSALS: Proposal[] = [
     totalVoters: 12,
     status: 'active',
     deadline: '2025-06-05',
-    category: 'Investment Strategy',
+    category: 'Rules & Penalties',
     userVoted: 'for',
   },
   {
@@ -359,7 +359,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
     stokvelId: 'stokvel-1',
     type: 'payout',
     amount: 42000,
-    description: 'April Rotating Equity Distribution - Zanele Naidoo',
+    description: 'April Rotation Payout - Zanele Naidoo',
     date: '2025-04-30',
     memberName: 'Zanele Naidoo',
     reference: 'PAYOUT-ZANELE-04',

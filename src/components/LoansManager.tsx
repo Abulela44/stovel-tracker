@@ -37,7 +37,7 @@ export const LoansManager: React.FC<LoansManagerProps> = ({
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-secondary/20 text-secondary border border-secondary/30 inline-block mb-2">
             Internal Stokvel Financing
           </span>
-          <h2 className="text-2xl font-extrabold text-white">Group Micro-Loans & Yield Return</h2>
+          <h2 className="text-2xl font-extrabold text-white">Group Loans</h2>
           <p className="text-xs text-textSecondary mt-1">
             Members can borrow against pooled savings at agreed interest rates. All interest income flows directly into group balance.
           </p>
@@ -54,9 +54,9 @@ export const LoansManager: React.FC<LoansManagerProps> = ({
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="glass-card p-5 rounded-2xl border border-border">
-          <span className="text-xs font-semibold text-textSecondary uppercase tracking-wider">Active Borrowed Capital</span>
+          <span className="text-xs font-semibold text-textSecondary uppercase tracking-wider">Money Currently Lent Out</span>
           <p className="text-2xl font-bold text-white font-mono mt-1">R {activeLoansTotal.toLocaleString()}</p>
-          <span className="text-xs text-emerald-400 mt-1 inline-block">Generating monthly yields</span>
+          <span className="text-xs text-emerald-400 mt-1 inline-block">Being repaid to the group</span>
         </div>
 
         <div className="glass-card p-5 rounded-2xl border border-border">

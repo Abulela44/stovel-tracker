@@ -44,7 +44,7 @@ export const FinancialLedger: React.FC<FinancialLedgerProps> = ({ transactions }
             <FileText className="w-6 h-6 text-primary" /> Transparent Audit Ledger
           </h2>
           <p className="text-xs text-textSecondary mt-1">
-            Complete immutable transaction record of deposits, payouts, interest yields, and loans.
+            Complete immutable transaction record of deposits, payouts, loans and repayments.
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export const FinancialLedger: React.FC<FinancialLedgerProps> = ({ transactions }
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
-          {(['all', 'deposit', 'payout', 'loan_repayment', 'yield'] as const).map((t) => (
+          {(['all', 'deposit', 'payout', 'loan_repayment'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setFilterType(t)}
