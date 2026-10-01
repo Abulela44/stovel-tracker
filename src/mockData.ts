@@ -51,7 +51,7 @@ export const INITIAL_STOKVELS: Stokvel[] = [
     bankName: 'Capitec Bank',
     accountNumber: '1048293021',
     photoUrl: 'https://images.pexels.com/photos/6801874/pexels-photo-6801874.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Providing member micro-business financing with high returns returned directly to group treasury equity.',
+    description: 'Small, affordable loans to members, repaid back into the group pot.',
     yieldRate: 14.5,
     createdDate: '2023-08-01',
   }
@@ -349,7 +349,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
     stokvelId: 'stokvel-1',
     type: 'yield',
     amount: 4120,
-    description: 'Quarterly Money Market Interest Yield Distribution',
+    description: 'Quarterly bank interest on group savings',
     date: '2025-05-15',
     reference: 'YIELD-MM-Q1',
     category: 'Interest Earned',
