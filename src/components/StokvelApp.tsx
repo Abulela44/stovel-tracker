@@ -22,7 +22,7 @@ import { NewProposalModal } from './modals/NewProposalModal';
 import { INITIAL_CONTRIBUTIONS, INITIAL_LOANS, INITIAL_MEMBERS, INITIAL_PAYOUTS, INITIAL_PROPOSALS, INITIAL_STOKVELS, INITIAL_TRANSACTIONS } from '../mockData';
 import type { AppNotification, Contribution, GroupSecuritySettings, Loan, Member, PayoutSchedule, Proposal, Stokvel, StokvelWorkspace, Transaction } from '../types';
 
-const DEFAULT_SECURITY_SETTINGS: GroupSecuritySettings = { groupName: 'Sisonke Family Savings Club', adminName: 'Sipho Ndlovu', adminIdNumber: '8604125800084', adminPhone: '+27 82 555 1234', isIdVerified: true, multiSignThreshold: 1000, requiredApprovals: 2, constitutionAgreed: true, bankAccountVerified: true };
+const DEFAULT_SECURITY_SETTINGS: GroupSecuritySettings = { groupName: 'Sisonke Family Savings Club', adminName: 'Sipho Ndlovu', adminIdNumber: '', adminPhone: '+27 82 555 1234', isIdVerified: true, multiSignThreshold: 1000, requiredApprovals: 2, constitutionAgreed: true, bankAccountVerified: true };
 const DEFAULT_NOTIFICATIONS: AppNotification[] = [
   { id: 'overdue', title: 'Contribution overdue', message: 'Zanele Naidoo still has an outstanding monthly contribution.', kind: 'warning', read: false },
   { id: 'loan', title: 'Loan needs approval', message: 'Sipho Dlamini has a pending group loan request.', kind: 'info', read: false },
