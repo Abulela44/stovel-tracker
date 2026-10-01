@@ -65,9 +65,9 @@ export const StokvelOverview: React.FC<StokvelOverviewProps> = ({
           <p className="text-xl font-bold text-white mb-1">{stokvel.bankName}</p>
           <p className="text-sm font-mono text-textSecondary mb-4">Acc: {stokvel.accountNumber}</p>
           <div className="pt-4 border-t border-border/80 flex items-center justify-between text-xs">
-            <span className="text-textSecondary">Annual Yield Return:</span>
+            <span className="text-textSecondary">Contribution day:</span>
             <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-              {stokvel.yieldRate}% Interest p.a.
+              Every {stokvel.cycleDay}th of the month
             </span>
           </div>
         </div>
@@ -136,7 +136,7 @@ export const StokvelOverview: React.FC<StokvelOverviewProps> = ({
         <div className="lg:col-span-7 glass-panel p-6 rounded-3xl border border-border space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-white">Treasury Portfolio Growth</h3>
+              <h3 className="text-lg font-bold text-white">Group Savings Growth</h3>
               <p className="text-xs text-textSecondary">Cumulative contributions + Interest earned (6 Month View)</p>
             </div>
             <button 

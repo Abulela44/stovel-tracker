@@ -31,10 +31,10 @@ export const PayoutsRotation: React.FC<PayoutsRotationProps> = ({ payouts, stokv
             Rotation Schedule 2025
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Rotating Payouts & Dividends
+            Rotating Payouts
           </h2>
           <p className="text-sm text-textSecondary mt-2">
-            Each month, pooled contributions and earned yields are disbursed to assigned group members in transparent rotation order.
+            Each month, pooled contributions are paid out to assigned group members in transparent rotation order.
           </p>
         </div>
       </div>

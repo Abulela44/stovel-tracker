@@ -91,7 +91,7 @@ export interface Proposal {
   totalVoters: number;
   status: 'active' | 'passed' | 'rejected';
   deadline: string;
-  category: 'Investment Strategy' | 'Rules & Penalties' | 'Payout Adjustment' | 'Member Admission';
+  category: 'Rules & Penalties' | 'Payout Adjustment' | 'Member Admission';
   userVoted?: 'for' | 'against' | null;
 }
 

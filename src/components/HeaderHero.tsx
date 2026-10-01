@@ -88,7 +88,7 @@ export const HeaderHero: React.FC<HeaderHeroProps> = ({
               R {stokvel.totalBalance.toLocaleString()}
             </p>
             <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> +{stokvel.yieldRate}% Annual Yield
+              <TrendingUp className="w-3 h-3" /> R {stokvel.monthlyContribution.toLocaleString()} monthly per member
             </p>
           </div>
 

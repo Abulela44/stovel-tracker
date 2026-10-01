@@ -50,7 +50,7 @@ export const MemberTracker: React.FC<MemberTrackerProps> = ({
             <Users className="w-6 h-6 text-primary" /> Member Roster & Payment Status
           </h2>
           <p className="text-xs text-textSecondary mt-1">
-            Track monthly contributions, member equity share, and payment verifications.
+            Track monthly contributions, payout turns and payment checks.
           </p>
         </div>
 
@@ -151,8 +151,8 @@ export const MemberTracker: React.FC<MemberTrackerProps> = ({
                   <span className="font-bold text-white font-mono">R {m.totalContributed.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-textSecondary">Group Equity Share:</span>
-                  <span className="font-bold text-primary font-mono">{m.equityPercentage}%</span>
+                  <span className="text-textSecondary">Payout Turn:</span>
+                  <span className="font-bold text-primary font-mono">{m.payoutOrder ? `#${m.payoutOrder}` : '—'}</span>
                 </div>
                 {m.payoutMonth && (
                   <div className="flex justify-between text-xs pt-1 border-t border-border/40">

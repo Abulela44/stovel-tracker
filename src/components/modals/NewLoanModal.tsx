@@ -60,7 +60,7 @@ export const NewLoanModal: React.FC<NewLoanModalProps> = ({
             >
               {members.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.name} (Equity: {m.equityPercentage}%)
+                  {m.name}
                 </option>
               ))}
             </select>

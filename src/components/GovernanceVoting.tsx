@@ -32,7 +32,7 @@ export const GovernanceVoting: React.FC<GovernanceVotingProps> = ({
           </span>
           <h2 className="text-2xl font-extrabold text-white">Group Motions & Decisions</h2>
           <p className="text-xs text-textSecondary mt-1">
-            Democratic decision-making for investment strategies, constitutional adjustments, and fund disbursements.
+            Democratic decision-making for group rules, constitutional adjustments, and fund disbursements.
           </p>
         </div>
 

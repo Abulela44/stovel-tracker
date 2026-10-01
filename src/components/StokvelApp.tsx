@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { Calculator, FileText, Landmark, LayoutDashboard, LoaderCircle, MoreHorizontal, ShieldCheck, Sparkles, Users, Vote, Wallet, X } from 'lucide-react';
+import { FileText, Landmark, LayoutDashboard, LoaderCircle, MoreHorizontal, ShieldCheck, Sparkles, Users, Vote, Wallet, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { AuthGate } from './AuthGate';
@@ -13,7 +13,6 @@ import { PayoutsRotation } from './PayoutsRotation';
 import { LoansManager } from './LoansManager';
 import { GovernanceVoting } from './GovernanceVoting';
 import { FinancialLedger } from './FinancialLedger';
-import { Calculators } from './Calculators';
 import { TrustAndSecurity } from './TrustAndSecurity';
 import { AddContributionModal } from './modals/AddContributionModal';
 import { WhatsAppReminderModal } from './modals/WhatsAppReminderModal';
@@ -23,7 +22,7 @@ import { NewProposalModal } from './modals/NewProposalModal';
 import { INITIAL_CONTRIBUTIONS, INITIAL_LOANS, INITIAL_MEMBERS, INITIAL_PAYOUTS, INITIAL_PROPOSALS, INITIAL_STOKVELS, INITIAL_TRANSACTIONS } from '../mockData';
 import type { AppNotification, Contribution, GroupSecuritySettings, Loan, Member, PayoutSchedule, Proposal, Stokvel, StokvelWorkspace, Transaction } from '../types';
 
-const DEFAULT_SECURITY_SETTINGS: GroupSecuritySettings = { groupName: 'Sisonke Wealth & Property Syndicate', adminName: 'Sipho Ndlovu', adminIdNumber: '8604125800084', adminPhone: '+27 82 555 1234', isIdVerified: true, multiSignThreshold: 1000, requiredApprovals: 2, constitutionAgreed: true, bankAccountVerified: true };
+const DEFAULT_SECURITY_SETTINGS: GroupSecuritySettings = { groupName: 'Sisonke Family Savings Club', adminName: 'Sipho Ndlovu', adminIdNumber: '', adminPhone: '+27 82 555 1234', isIdVerified: true, multiSignThreshold: 1000, requiredApprovals: 2, constitutionAgreed: true, bankAccountVerified: true };
 const DEFAULT_NOTIFICATIONS: AppNotification[] = [
   { id: 'overdue', title: 'Contribution overdue', message: 'Zanele Naidoo still has an outstanding monthly contribution.', kind: 'warning', read: false },
   { id: 'loan', title: 'Loan needs approval', message: 'Sipho Dlamini has a pending group loan request.', kind: 'info', read: false },
@@ -35,7 +34,7 @@ const tabs = [
   { id: 'overview', label: 'Overview', short: 'Home', icon: LayoutDashboard }, { id: 'members', label: 'Members & Payments', short: 'Members', icon: Users },
   { id: 'payouts', label: 'Rotation Schedule', short: 'Payouts', icon: Sparkles }, { id: 'loans', label: 'Group Loans', short: 'Loans', icon: Landmark },
   { id: 'governance', label: 'Voting & Motions', short: 'Voting', icon: Vote }, { id: 'ledger', label: 'Audit Ledger', short: 'Ledger', icon: FileText },
-  { id: 'trust', label: 'Trust & Security', short: 'Security', icon: ShieldCheck }, { id: 'calculators', label: 'Wealth Estimator', short: 'Estimator', icon: Calculator },
+  { id: 'trust', label: 'Trust & Security', short: 'Security', icon: ShieldCheck },
 ];
 
 export function StokvelApp() { return <AuthGate>{(session) => <AuthenticatedApp session={session} />}</AuthGate>; }
@@ -75,7 +74,7 @@ function AuthenticatedApp({ session }: { session: Session }) {
       {activeTab === 'governance' && <GovernanceVoting proposals={workspace.proposals} onOpenNewProposalModal={() => setProposalOpen(true)} onCastVote={castVote} />}
       {activeTab === 'ledger' && <FinancialLedger transactions={workspace.transactions} />}
       {activeTab === 'trust' && <TrustAndSecurity stokvel={activeStokvel} settings={workspace.securitySettings} onUpdateSettings={(securitySettings) => patch({ securitySettings })} onUpdateGroupName={(name) => { updateActive((s) => ({ ...s, name })); patch({ securitySettings: { ...workspace.securitySettings, groupName: name } }); }} />}
-      {activeTab === 'calculators' && <Calculators />}
+
     </main>
     {moreOpen && <div className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 rounded-xl border border-border bg-surface-card p-3 shadow-2xl md:hidden"><div className="mb-2 flex items-center justify-between px-2"><p className="text-sm font-bold">More tools</p><button aria-label="Close more tools" className="grid size-9 place-items-center" onClick={() => setMoreOpen(false)}><X className="size-4" /></button></div><div className="grid grid-cols-2 gap-2">{tabs.slice(2).filter((t) => t.id !== 'loans').map(({ id, short, icon: Icon }) => <button key={id} className="flex min-h-12 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-left text-sm" onClick={() => navigate(id)}><Icon className="size-4 text-primary" />{short}</button>)}</div></div>}
     <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-surface-card/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">{[{ id: 'overview', label: 'Home', icon: LayoutDashboard }, { id: 'members', label: 'Members', icon: Users }, { id: 'contribute', label: 'Pay', icon: Wallet }, { id: 'loans', label: 'Loans', icon: Landmark }, { id: 'more', label: 'More', icon: MoreHorizontal }].map(({ id, label, icon: Icon }) => <button key={id} aria-label={label} onClick={() => id === 'contribute' ? setContribOpen(true) : id === 'more' ? setMoreOpen((v) => !v) : navigate(id)} className={`flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${activeTab === id ? 'text-primary' : 'text-textSecondary'}`}><Icon className="size-5" />{label}</button>)}</nav>
