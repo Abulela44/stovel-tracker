@@ -28,7 +28,7 @@ export const PayoutsRotation: React.FC<PayoutsRotationProps> = ({ payouts, stokv
       <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-border bg-gradient-to-r from-surface via-surface-card to-background relative overflow-hidden">
         <div className="max-w-2xl">
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent/20 text-accent border border-accent/30 inline-block mb-3">
-            Rotation Schedule 2025
+            Rotation Schedule
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
             Rotating Payouts
@@ -41,6 +41,7 @@ export const PayoutsRotation: React.FC<PayoutsRotationProps> = ({ payouts, stokv
 
       {/* Payout Schedule Cards / Timeline */}
       <div className="space-y-4">
+        {payouts.length === 0 && <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center"><p className="text-lg font-semibold text-foreground">No payouts scheduled yet</p><p className="mt-1 text-base text-textSecondary">Once members are added, their payout turns will show here.</p></div>}
         {payouts.map((pay, idx) => (
           <div
             key={pay.id}

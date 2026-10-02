@@ -86,6 +86,7 @@ export const FinancialLedger: React.FC<FinancialLedgerProps> = ({ transactions }
         </div>
       </div>
 
+      {filteredTx.length === 0 && <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center"><p className="text-lg font-semibold text-foreground">No contributions yet</p><p className="mt-1 text-base text-textSecondary">Every payment, payout and loan will be recorded here automatically.</p></div>}
       {/* Transaction Table */}
       <div className="space-y-3 md:hidden">
         {filteredTx.map((tx) => (
@@ -95,7 +96,7 @@ export const FinancialLedger: React.FC<FinancialLedgerProps> = ({ transactions }
           </article>
         ))}
       </div>
-      <div className="hidden glass-panel rounded-3xl border border-border overflow-hidden md:block">
+      <div className={`${filteredTx.length === 0 ? 'hidden' : 'hidden md:block'} glass-panel rounded-3xl border border-border overflow-hidden`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>

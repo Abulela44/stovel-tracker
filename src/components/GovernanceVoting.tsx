@@ -46,6 +46,7 @@ export const GovernanceVoting: React.FC<GovernanceVotingProps> = ({
 
       {/* Motions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {proposals.length === 0 && <div className="col-span-full"><div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center"><p className="text-lg font-semibold text-foreground">No motions yet</p><p className="mt-1 text-base text-textSecondary">Create a motion when the group needs to vote on something.</p></div></div>}
         {proposals.map((prop) => {
           const totalVotes = prop.votesFor + prop.votesAgainst;
           const forPercent = totalVotes > 0 ? Math.round((prop.votesFor / totalVotes) * 100) : 0;
