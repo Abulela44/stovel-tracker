@@ -22,16 +22,9 @@ import { WhatsAppReminderModal } from './modals/WhatsAppReminderModal';
 import { NewLoanModal } from './modals/NewLoanModal';
 import { AddMemberModal } from './modals/AddMemberModal';
 import { NewProposalModal } from './modals/NewProposalModal';
-import { INITIAL_CONTRIBUTIONS, INITIAL_LOANS, INITIAL_MEMBERS, INITIAL_PAYOUTS, INITIAL_PROPOSALS, INITIAL_STOKVELS, INITIAL_TRANSACTIONS } from '../mockData';
+import { createEmptyStokvel, createEmptyWorkspace } from '../mockData';
 import type { AppNotification, Contribution, GroupSecuritySettings, Loan, Member, PayoutSchedule, Proposal, Stokvel, StokvelWorkspace, Transaction } from '../types';
 
-const DEFAULT_SECURITY_SETTINGS: GroupSecuritySettings = { groupName: 'Sisonke Family Savings Club', adminName: 'Sipho Ndlovu', adminIdNumber: '', adminPhone: '+27 82 555 1234', isIdVerified: true, multiSignThreshold: 1000, requiredApprovals: 2, constitutionAgreed: true, bankAccountVerified: true };
-const DEFAULT_NOTIFICATIONS: AppNotification[] = [
-  { id: 'overdue', title: 'Contribution overdue', message: 'Zanele Naidoo still has an outstanding monthly contribution.', kind: 'warning', read: false },
-  { id: 'loan', title: 'Loan needs approval', message: 'Sipho Dlamini has a pending group loan request.', kind: 'info', read: false },
-  { id: 'payout', title: 'Payout approaching', message: 'Nomvula Khumalo is next in the rotation schedule.', kind: 'success', read: false },
-];
-const DEFAULT_WORKSPACE: StokvelWorkspace = { stokvels: INITIAL_STOKVELS, members: INITIAL_MEMBERS, contributions: INITIAL_CONTRIBUTIONS, payouts: INITIAL_PAYOUTS, loans: INITIAL_LOANS, proposals: INITIAL_PROPOSALS, transactions: INITIAL_TRANSACTIONS, notifications: DEFAULT_NOTIFICATIONS, securitySettings: DEFAULT_SECURITY_SETTINGS };
 
 const tabs = [
   { id: 'overview', label: 'Overview', short: 'Home', icon: LayoutDashboard }, { id: 'members', label: 'Members & Payments', short: 'Members', icon: Users },
@@ -43,15 +36,15 @@ const tabs = [
 export function StokvelApp() { return <AuthGate>{(session) => <AuthenticatedApp session={session} />}</AuthGate>; }
 
 function AuthenticatedApp({ session }: { session: Session }) {
-  const [workspace, setWorkspaceRaw] = useState<StokvelWorkspace>(DEFAULT_WORKSPACE);
+  const [workspace, setWorkspaceRaw] = useState<StokvelWorkspace>(createEmptyWorkspace);
   const [workspaceId, setWorkspaceId] = useState(''); const [role, setRole] = useState<'admin' | 'officer' | 'member'>('member');
   const canEdit = role !== 'member';
   const setWorkspace: typeof setWorkspaceRaw = (v) => { if (!canEdit) { toast.error('You have view-only access. Ask an admin for permission.'); return; } setWorkspaceRaw(v); };
   const [loaded, setLoaded] = useState(false); const [saving, setSaving] = useState(false); const initialLoad = useRef(true);
-  const [activeStokvelId, setActiveStokvelId] = useState(INITIAL_STOKVELS[0]?.id ?? ''); const [activeTab, setActiveTab] = useState('overview');
+  const [activeStokvelId, setActiveStokvelId] = useState('stokvel-1'); const [activeTab, setActiveTab] = useState('overview');
   const [contribOpen, setContribOpen] = useState(false); const [loanOpen, setLoanOpen] = useState(false); const [memberOpen, setMemberOpen] = useState(false); const [proposalOpen, setProposalOpen] = useState(false); const [moreOpen, setMoreOpen] = useState(false);
   const [reminderMember, setReminderMember] = useState<Member | null>(null);
-  const activeStokvel = workspace.stokvels.find((item) => item.id === activeStokvelId) ?? workspace.stokvels[0] ?? INITIAL_STOKVELS[0];
+  const activeStokvel = workspace.stokvels.find((item) => item.id === activeStokvelId) ?? workspace.stokvels[0] ?? createEmptyStokvel();
 
   useEffect(() => { void (async () => {
     const key = `signin-logged-${session.access_token.slice(-16)}`;
@@ -84,7 +77,7 @@ function AuthenticatedApp({ session }: { session: Session }) {
     <Navbar stokvels={workspace.stokvels} activeStokvel={activeStokvel} onSelectStokvel={(s) => setActiveStokvelId(s.id)} onOpenCreateModal={() => navigate('trust')} onOpenContributionModal={() => setContribOpen(true)} notifications={workspace.notifications} unreadCount={unread} onMarkNotificationsRead={() => setWorkspaceRaw((w) => ({ ...w, notifications: w.notifications.map((n) => ({ ...n, read: true })) }))} onSignOut={() => void supabase.auth.signOut()} saving={saving} />
     <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8 lg:px-8"><HeaderHero stokvel={activeStokvel} onOpenContributionModal={() => setContribOpen(true)} onOpenLoanModal={() => setLoanOpen(true)} />
       <nav className="mb-8 hidden items-center gap-2 overflow-x-auto border-b border-border pb-4 md:flex">{tabs.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => navigate(id)} className={`flex h-11 items-center gap-2 whitespace-nowrap rounded-lg px-4 text-sm font-semibold transition-colors ${activeTab === id ? 'bg-primary text-primary-foreground' : 'border border-border bg-surface text-textSecondary hover:text-foreground'}`}><Icon className="size-4" />{label}</button>)}</nav>
-      {activeTab === 'overview' && <StokvelOverview stokvel={activeStokvel} members={workspace.members} contributions={workspace.contributions} transactions={workspace.transactions} onNavigateTab={navigate} />}
+      {activeTab === 'overview' && <StokvelOverview stokvel={activeStokvel} members={workspace.members} contributions={workspace.contributions} transactions={workspace.transactions} payouts={workspace.payouts} onNavigateTab={navigate} />}
       {activeTab === 'members' && <MemberTracker members={workspace.members} stokvel={activeStokvel} onOpenAddMemberModal={() => setMemberOpen(true)} onOpenReminderModal={setReminderMember} onVerifyMemberPayment={verifyPayment} />}
       {activeTab === 'payouts' && <PayoutsRotation payouts={workspace.payouts} stokvel={activeStokvel} />}
       {activeTab === 'loans' && <LoansManager loans={workspace.loans} stokvel={activeStokvel} onOpenNewLoanModal={() => setLoanOpen(true)} onApproveLoan={approveLoan} />}

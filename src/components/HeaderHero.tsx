@@ -22,7 +22,7 @@ export const HeaderHero: React.FC<HeaderHeroProps> = ({
   onOpenContributionModal,
   onOpenLoanModal,
 }) => {
-  const targetPercent = Math.min(100, Math.round((stokvel.totalBalance / stokvel.targetAmount) * 100));
+  const targetPercent = Math.min(100, stokvel.targetAmount > 0 ? Math.round((stokvel.totalBalance / stokvel.targetAmount) * 100) : 0);
 
   return (
     <div className="relative mb-6 overflow-hidden rounded-xl border border-border bg-gradient-to-b from-surface via-surface-card to-background p-4 shadow-2xl sm:mb-8 sm:p-8">
@@ -37,7 +37,7 @@ export const HeaderHero: React.FC<HeaderHeroProps> = ({
         <div className="lg:col-span-7 space-y-5">
           <div className="flex flex-wrap items-center gap-3">
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/15 text-primary border border-primary/30 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5" /> Verified Stokvel Group
+              <ShieldCheck className="w-3.5 h-3.5" /> Your Stokvel Group
             </span>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-secondary/15 text-secondary border border-secondary/30">
               {stokvel.type} Fund
@@ -85,7 +85,7 @@ export const HeaderHero: React.FC<HeaderHeroProps> = ({
               </div>
             </div>
             <p className="break-words text-lg font-bold text-white font-mono sm:text-2xl">
-              R {stokvel.totalBalance.toLocaleString()}
+              R {stokvel.totalBalance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
               <TrendingUp className="w-3 h-3" /> R {stokvel.monthlyContribution.toLocaleString()} monthly per member
@@ -117,9 +117,7 @@ export const HeaderHero: React.FC<HeaderHeroProps> = ({
             <p className="text-lg font-bold text-white font-mono sm:text-2xl">
               {stokvel.memberCount} <span className="text-xs font-normal text-textSecondary">Members</span>
             </p>
-            <p className="text-xs text-emerald-400 mt-1">
-              100% Active Standing
-            </p>
+            <p className="text-xs text-emerald-400 mt-1">{stokvel.memberCount === 0 ? 'Add members to get started' : 'Active members'}</p>
           </div>
 
           <div className="min-w-0 p-3 sm:p-4 rounded-lg glass-card border border-border hover:border-emerald-500/50 transition-all">

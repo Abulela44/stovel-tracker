@@ -74,6 +74,7 @@ export const LoansManager: React.FC<LoansManagerProps> = ({
 
       {/* Loans List */}
       <div className="space-y-4">
+        {loans.length === 0 && <div className="col-span-full"><div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center"><p className="text-lg font-semibold text-foreground">No loans yet</p><p className="mt-1 text-base text-textSecondary">Loan requests from members will appear here.</p></div></div>}
         {loans.map((loan) => (
           <div
             key={loan.id}

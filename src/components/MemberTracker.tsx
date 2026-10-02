@@ -97,6 +97,7 @@ export const MemberTracker: React.FC<MemberTrackerProps> = ({
 
       {/* Members Grid Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredMembers.length === 0 && <div className="col-span-full"><div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center"><p className="text-lg font-semibold text-foreground">No members yet</p><p className="mt-1 text-base text-textSecondary">Tap “Add Member” to add the first person in your group.</p></div></div>}
         {filteredMembers.map((m) => (
           <div
             key={m.id}
