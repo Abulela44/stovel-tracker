@@ -117,9 +117,7 @@ export const HeaderHero: React.FC<HeaderHeroProps> = ({
             <p className="text-lg font-bold text-white font-mono sm:text-2xl">
               {stokvel.memberCount} <span className="text-xs font-normal text-textSecondary">Members</span>
             </p>
-            <p className="text-xs text-emerald-400 mt-1">
-              Add members to get started
-            </p>
+            <p className="text-xs text-emerald-400 mt-1">{stokvel.memberCount === 0 ? 'Add members to get started' : 'Active members'}</p>
           </div>
 
           <div className="min-w-0 p-3 sm:p-4 rounded-lg glass-card border border-border hover:border-emerald-500/50 transition-all">

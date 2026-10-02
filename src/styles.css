@@ -97,7 +97,10 @@
     border-color: var(--color-border);
   }
 
+  html { font-size: 112.5%; }
+
   body {
+    line-height: 1.6;
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
