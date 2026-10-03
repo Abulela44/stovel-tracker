@@ -152,7 +152,7 @@ export const MemberTracker: React.FC<MemberTrackerProps> = ({
                 </div>
               </div>
 
-              <MemberBalanceBreakdown member={m} contributions={contributions} loans={loans} payouts={payouts} />
+              <MemberBalanceBreakdown member={m} contributions={contributions} loans={loans} payouts={payouts} stokvel={stokvel} />
 
               {/* Contributed & Equity Details */}
               <div className="bg-surface-card p-3 rounded-2xl border border-border/60 space-y-2 mb-4">
