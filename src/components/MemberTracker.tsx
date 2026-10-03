@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   Coins
 } from 'lucide-react';
-import { Member, Stokvel } from '../types';
+import { Member, Stokvel, Contribution, Loan, PayoutSchedule } from '../types';
+import { MemberBalanceBreakdown } from './MemberBalanceBreakdown';
 
 interface MemberTrackerProps {
   members: Member[];
@@ -22,6 +23,9 @@ interface MemberTrackerProps {
   onOpenAddMemberModal: () => void;
   onOpenReminderModal: (member: Member) => void;
   onVerifyMemberPayment: (memberId: string) => void;
+  contributions?: Contribution[];
+  loans?: Loan[];
+  payouts?: PayoutSchedule[];
 }
 
 export const MemberTracker: React.FC<MemberTrackerProps> = ({
@@ -30,6 +34,9 @@ export const MemberTracker: React.FC<MemberTrackerProps> = ({
   onOpenAddMemberModal,
   onOpenReminderModal,
   onVerifyMemberPayment,
+  contributions = [],
+  loans = [],
+  payouts = [],
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
@@ -144,6 +151,8 @@ export const MemberTracker: React.FC<MemberTrackerProps> = ({
                   <span className="truncate">{m.email}</span>
                 </div>
               </div>
+
+              <MemberBalanceBreakdown member={m} contributions={contributions} loans={loans} payouts={payouts} />
 
               {/* Contributed & Equity Details */}
               <div className="bg-surface-card p-3 rounded-2xl border border-border/60 space-y-2 mb-4">
