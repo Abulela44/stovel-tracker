@@ -1,6 +1,7 @@
 import React from 'react';
-import { Calculator } from 'lucide-react';
-import { Contribution, Loan, Member, PayoutSchedule } from '../types';
+import { Calculator, Download } from 'lucide-react';
+import { Contribution, Loan, Member, PayoutSchedule, Stokvel } from '../types';
+import { downloadMemberStatement } from '../lib/memberStatement';
 
 const rand = (n: number) =>
   `R ${n.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -33,7 +34,7 @@ const Row: React.FC<{ label: string; hint?: string; value: string; tone?: string
   </div>
 );
 
-export const MemberBalanceBreakdown: React.FC<{ member: Member; contributions: Contribution[]; loans: Loan[]; payouts: PayoutSchedule[] }> = ({ member, contributions, loans, payouts }) => {
+export const MemberBalanceBreakdown: React.FC<{ member: Member; contributions: Contribution[]; loans: Loan[]; payouts: PayoutSchedule[]; stokvel: Stokvel }> = ({ member, contributions, loans, payouts, stokvel }) => {
   const b = computeMemberBalance(member, contributions, loans, payouts);
   return (
     <details className="rounded-2xl border border-border/60 bg-surface-card mb-4 group/bd">
@@ -54,6 +55,9 @@ export const MemberBalanceBreakdown: React.FC<{ member: Member; contributions: C
         {b.pendingCount > 0 && (
           <p className="text-xs text-amber-400 mt-1">{rand(b.pendingIn)} in {b.pendingCount} payment{b.pendingCount === 1 ? '' : 's'} waiting to be confirmed — not counted yet.</p>
         )}
+        <button type="button" onClick={() => downloadMemberStatement(member, stokvel, contributions, loans, payouts)} className="mt-3 w-full min-h-11 rounded-xl border border-border bg-surface hover:bg-surface-hover text-sm font-semibold text-foreground flex items-center justify-center gap-2">
+          <Download className="w-4 h-4" /> Download statement (PDF)
+        </button>
       </div>
     </details>
   );
